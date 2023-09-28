@@ -1,0 +1,125 @@
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<script src="/js/an.js"></script>
+	<script src="../../js/md5.js"></script>
+	<script src="../../js/AES.js"></script>
+	<script src="../../js/size.js"></script>
+	<title>Diary-设置密码</title>
+</head>
+<body onload=L()>
+<h1>Diary</h1>
+<h2>对数据进行加密</h2>
+<div id="view">
+	<input id="D" onchange=D() style="zoom:140%" type="checkbox">
+	<span>使用原密码进行加密</span>
+	<p>或者使用新密码：</p>
+	<input id="key" placeholder="请输入密码" style="width:300px;height:35px" type="password"><br>
+	<input id="key1" placeholder="请确认密码" style="width:300px;height:35px" type="password"><br><br>
+	<button onclick=S() style="width:130px;height:35px">确定</button>
+</div>
+<p><a href="index.html">返回</a></p>
+<script>
+	let ago,diary=[],A=0;
+
+	function L()
+	{
+		if(localStorage.diarywith==="true")
+		{
+			document.getElementById("view").style.display="none";
+			window.location.href="./need.html";
+			return;
+		}
+		ago=localStorage.diaryago;
+		if(ago===undefined)
+		{document.getElementById("D").disabled=true;}
+		let u=localStorage.diarydata,n="";
+		for(let i=0; i<u.length; i++)
+		{
+			if(u[i]==="$")
+			{
+				diary[A]="diary_"+n;
+				A++;
+				n="";
+			}
+			else
+			{n+=u[i];}
+		}
+	}
+
+	function D()
+	{
+		if(document.getElementById("D").checked)
+		{
+			document.getElementById("key").value="";
+			document.getElementById("key").disabled=true;
+			document.getElementById("key1").value="";
+			document.getElementById("key1").disabled=true;
+		}
+		else
+		{
+			document.getElementById("key").disabled=false;
+			document.getElementById("key1").disabled=false;
+		}
+	}
+
+	function get()
+	{
+		let tF=false;
+		for(let i=0; i<A; i++)
+		{
+			if(diary[i].indexOf("∅")!== -1||localStorage.getItem(diary[i]).indexOf("∅")!== -1)
+			{
+				tF=true;
+				break;
+			}
+		}
+		if(tF)
+		{return null;}
+		let oF=localStorage.diarydata+"∅";
+		for(let i=0; i<A; i++)
+		{oF+=diary[i]+"∅"+localStorage.getItem(diary[i])+"∅";}
+		return oF;
+	}
+
+	function del()
+	{
+		for(let i=0; i<diary.length; i++)
+		{localStorage.removeItem(diary[i]);}
+		localStorage.removeItem("diarydata");
+	}
+
+	function S()
+	{
+		let k=document.getElementById("key").value;
+		if(k!==document.getElementById("key1").value)
+		{
+			alert("密码不一致!");
+			return;
+		}
+		if(document.getElementById("D").checked)
+		{k=ago;}
+		if(k==="")
+		{
+			alert("请输入密码!");
+			return;
+		}
+		let s=get();
+		if(s===null)
+		{
+			alert("操作失败\n分隔符\"∅\"被占用");
+			return;
+		}
+		localStorage.diarymd5=md5(s);
+		s=CryptoJS.AES.encrypt(s,k).toString();
+		s=LZString.compressToUTF16(s);
+		localStorage.diary_data=s;
+		localStorage.diarywith="true";
+		del();
+		localStorage.removeItem("diaryago");
+		alert("已加密");
+		window.location.href="need.html";
+	}
+</script>
+</body>
+</html>

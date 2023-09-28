@@ -1,0 +1,144 @@
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<script src="/js/an.js"></script>
+	<title>密码生成器</title>
+</head>
+<body>
+<h1>密码生成器</h1>
+<div id="how">
+	<input checked id="A" type="checkbox"><span title='0123456789'>数字</span>&emsp;&emsp;&emsp;
+	<input id="D" type="checkbox"><span>特殊符号</span><br>
+	<input checked id="B" type="checkbox"><span title='abcdefghijklmnopqrstuvwxyz'>小写字母</span>&emsp;
+	<input checked id="C" type="checkbox"><span title='ABCDEFGHIJKLMNOPQRSTUVWXYZ'>大写字母</span><br><br>
+	<span>长度：</span><input id="L" style="width:40px" type="number" value="16">&emsp;
+	<button onclick="run()" style="width:88px">生成</button>
+</div>
+<div id="res" style="display:none">
+	<br><br>
+	<span>结果：</span><input id="R" readonly style="width:200px" type="password"><br><br>
+	<button onclick="show()" style="width:115px;height:30px">显示</button>
+	<button onclick="hide()" style="width:115px;height:30px;display:none">隐藏</button>&emsp;<button onclick="copy()"
+	style="width:115px;height:30px">
+	复制
+</button>
+	<br><br>
+	<button onclick="save()" style="width:245px;height:30px">保存至"备忘录"...</button>
+</div>
+<p><a href="../index.html">返回</a></p>
+</body>
+<style>
+	input[type=checkbox], #how
+	{
+		zoom:120%;
+	}
+</style>
+<script>
+	let A="0123456789";
+	let B="abcdefghijklmnopqrstuvwxyz";
+	let C="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	let D="!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+	let re,flag=true;
+	document.getElementById("how").children[3].title=D;
+
+	function run()
+	{
+		let all="",L,E=0,re,a=false,b=false,c=false,d=false;
+		if(document.getElementById("A").checked)
+		{
+			all+=A;
+			E++;
+		}
+		if(document.getElementById("B").checked)
+		{
+			all+=B;
+			E++;
+		}
+		if(document.getElementById("C").checked)
+		{
+			all+=C;
+			E++;
+		}
+		if(document.getElementById("D").checked)
+		{
+			all+=D;
+			E++;
+		}
+		if(E===0)
+		{
+			alert("请至少选择一项");
+			return;
+		}
+		L=document.getElementById("L").value;
+		L=Math.floor(L);
+		document.getElementById("L").value=L;
+		if(L<E)
+		{
+			alert("请选择足够长度");
+			return;
+		}
+		while(a+b+c+d<E)
+		{
+			re="";
+			a=b=c=d=false;
+			for(let i=1; i<=L; i++)
+			{
+				let at=Math.floor(Math.random()*all.length);
+				if(A.indexOf(all[at])!== -1)
+				{a=true;}
+				else if(B.indexOf(all[at])!== -1)
+				{b=true;}
+				else if(C.indexOf(all[at])!== -1)
+				{c=true;}
+				else if(D.indexOf(all[at])!== -1)
+				{d=true;}
+				re+=all[at];
+			}
+		}
+		document.getElementById("R").value=re;
+		document.getElementById("res").style.display="block";
+	}
+
+	function show()
+	{
+		document.getElementById("R").type="text";
+		document.getElementById("res").children[6].style.display="none";
+		document.getElementById("res").children[7].style.display="inline";
+		flag=false;
+	}
+
+	function hide()
+	{
+		document.getElementById("R").type="password";
+		document.getElementById("res").children[7].style.display="none";
+		document.getElementById("res").children[6].style.display="inline";
+		flag=true;
+	}
+
+	function copy()
+	{
+		if(flag)
+		{document.getElementById("R").type="text";}
+		document.getElementById("R").select();
+		document.execCommand("Copy");
+		if(flag)
+		{document.getElementById("R").type="password";}
+	}
+
+	function save()
+	{
+		if(localStorage.listswith==="true")
+		{
+			alert("请先取消加密");
+			return;
+		}
+		let u=prompt("索引","我的密码");
+		if(u==null)
+		{return;}
+		if(localStorage.listsdata===undefined)
+		{localStorage.listsdata="";}
+		localStorage.listsdata+=u+"≠"+document.getElementById("R").value+"≠";
+		alert("保存成功");
+	}
+</script>
+</html>

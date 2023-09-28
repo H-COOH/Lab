@@ -1,0 +1,227 @@
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<script src="/js/an.js"></script>
+	<script src="pic.js"></script>
+	<meta content="initial-scale=1,width=device-width" name="viewport">
+	<title>线性拟合计算器</title>
+</head>
+<body>
+<h1>线性拟合计算器</h1>
+<div id="main" style="margin-left:1%">
+	<p>X轴数据：<input id="dx">&ensp;<button onclick="acq('dx')">导入</button>
+	</p>
+	<p>Y轴数据：<input id="dy">&ensp;<button onclick="acq('dy')">导入</button>
+	</p>
+	<p>X轴标题：<input id="tx"></p>
+	<p>Y轴标题：<input id="ty"></p>
+	<p>标题：<input id="tt"></p>
+	<p>小数位数：<input id="ds" style="width:40px" type="number"></p>
+	<button onclick="main()" style="width:220px">拟合</button>
+	<div id="res" style="display:none">
+		<h2>结果</h2>
+		<div><p>K=<b></b></p>
+			<p>B=<b></b></p>
+			<p>R=<b></b></p></div>
+		<hr>
+		<br>
+		<div id="pic" style="width:300px;height:280px"></div>
+		<textarea id="late" readonly style="width:280px;height:200px"></textarea>
+		<p>
+			<button onclick="copy()" style="width:150px;height:30px">复制</button>&emsp;<button onclick="view()"
+			style="width:110px;height:30px">
+			查看
+		</button>
+		</p>
+	</div>
+	<p><a href="index.html">返回</a></p>
+</div>
+<div id="here" style="display:none">
+	<ul style="font-size:17px;line-height:1.5"></ul>
+	<button onclick="nope()" style="width:200px;height:30px">返回</button>
+</div>
+</body>
+<style>
+	input
+	{
+		width:200px;
+		height:30px;
+	}
+
+	button
+	{
+		width:45px;
+		height:30px;
+	}
+
+	@media (max-width:500px)
+	{
+		input
+		{
+			width:50%;
+			height:30px;
+		}
+	}
+</style>
+<script>
+	"use strict";
+
+	function nxt(c)
+	{return c===" "||c==="\n";}
+
+	function acq(k)
+	{
+		let dat=localStorage["dawu_dat"];
+		if(dat===undefined)
+		{
+			localStorage["dawu_dat"]="";
+			dat="";
+		}
+		let a="",n=-1,u="";
+		for(let i=0; i<dat.length; i++)
+		{
+			if(dat[i]==="#")
+			{
+				n++;
+				a+="<li><input type='text' value='"+u+"' readonly>&ensp;<button onclick=\"go("+String(n)+",\'"+k+"\')\">选择</button></li>";
+				u="";
+			}
+			else
+			{u+=dat[i];}
+		}
+		document.getElementById("main").style.display="none";
+		document.getElementById("here").children[0].innerHTML=a;
+		document.getElementById("here").style.display="block";
+	}
+
+	function nope()
+	{
+		document.getElementById("here").style.display="none";
+		document.getElementById("main").style.display="block";
+	}
+
+	function go(to,k)
+	{
+		document.getElementById(k).value=document.getElementById("here").children[0].children[to].children[0].value;
+		nope();
+	}
+
+	function R(k)
+	{
+		let dat=document.getElementById(k).value+" ";
+		let m=[],f=false;
+		for(let i=0; i<dat.length; i++)
+		{
+			let u="";
+			while(nxt(dat[i]))
+			{
+				i++;
+				if(i===dat.length)
+				{
+					f=true;
+					break;
+				}
+			}
+			if(f)
+			{break;}
+			while(!nxt(dat[i]))
+			{
+				u=u+dat[i];
+				i++;
+			}
+			m.push(parseFloat(u));
+		}
+		return m;
+	}
+
+	function work()
+	{
+		let u=R("dx"),v=R("dy"),L,w=[],t=parseInt(document.getElementById("ds").value);
+		const tp=[-1,-1,12.71,4.30,3.18,2.78,2.57,2.45,2.36,2.31,2.26,2.23,2.20,2.18,2.16,2.14,2.13,2.12,2.11,2.10,2.09,2.09];
+		L=Math.max(u.length,v.length);
+		for(let i=u.length; i<L; i++)
+		{u.push(0);}
+		for(let i=v.length; i<L; i++)
+		{v.push(0);}
+		for(let i=0; i<L; i++)
+		{w.push([u[i],v[i]]);}
+		let a=u.reduce((m,n)=>m+n,0)/L,b=v.reduce((m,n)=>m+n,0)/L,c=w.reduce((m,n)=>m+n[0]*n[1],0)/L;
+		let d=u.reduce((m,n)=>m+n*n,0)/L,e=v.reduce((m,n)=>m+n*n,0)/L,f=Math.min(...u),g=Math.max(...u);
+		let p=(c-a*b)/(d-a*a),q=b-p*a,r=(c-a*b)/Math.sqrt((d-a*a)*(e-b*b));
+		let s=document.getElementById("res").children[1];
+		s.children[0].children[0].innerText=p.toFixed(t);
+		s.children[1].children[0].innerText=q.toFixed(t);
+		s.children[2].children[0].innerText=r.toFixed(t);
+		let X="&k=\\frac{\\overline{xy}-\\overline{x}\\cdot\\overline{y}}{\\overline{x^2}-\\overline{x}^2}="+p.toFixed(t+1)+"\\\\\n&b=\\overline{y}-k\\overline{x}="+q.toFixed(t+1)+"\\\\\n&r=\\frac{\\overline{xy}-\\overline{x}\\cdot\\overline{y}}{\\sqrt{[\\overline{x^2}-(\\overline{x})^2][\\overline{y^2}-(\\overline{y})^2]}}="+r.toFixed(t+1)+"\\\\\n";
+		let x=Math.sqrt((1/r/r-1)/(L-2))*p*tp[L];
+		X+="&\\text{故展伸不确定度：}\\\\\n&u_k=\\sqrt{\\frac{1/r^2-1}{n-2}}kt_p="+x.toFixed(t)+"\\\\\n&\\text{最终得到：}\\\\\n&k=("+p.toFixed(t)+"\\pm"+x.toFixed(t)+")\\quad(P=0.95)\\\\";
+		document.getElementById("late").value=X;
+		echarts.dispose(document.getElementById("pic"));
+		let pic=echarts.init(document.getElementById("pic"));
+		let option=
+			{
+				title:{text:document.getElementById("tt").value,left:"center"},
+				xAxis:{
+					name:document.getElementById("tx").value,
+					nameLocation:"middle"
+				},
+				yAxis:{
+					name:document.getElementById("ty").value,
+					nameLocation:"middle"
+				},
+				series:[{
+					name:"data",
+					type:"scatter",
+					data:w,
+					markLine:{
+						data:[[
+							{
+								xAxis:f,yAxis:p*f+q,label:{
+									formatter:"y="+p.toFixed(t)+"*x+"+String(q.toFixed(t)),
+									position:"middle"
+								},symbol:"none"
+							},
+							{xAxis:g,yAxis:p*g+q,symbol:"none"}
+						]]
+					}
+				}],
+				animation:false
+			};
+		pic.setOption(option);
+		return isNaN(p+q+r);
+	}
+
+	function main()
+	{
+		document.getElementById("res").style.display="none";
+		let f;
+		try
+		{f=work();}
+		catch(e)
+		{f=true;}
+		if(f)
+		{
+			alert("存在错误！");
+			return;
+		}
+		document.getElementById("res").style.display="block";
+	}
+
+	function copy()
+	{
+		document.getElementById("late").select();
+		document.execCommand("Copy");
+	}
+
+	function view()
+	{
+		let r=document.getElementById("late").value;
+		r=r.replaceAll("&","\n$#");
+		r=r.replaceAll("\\\\","#");
+		localStorage["dawu$线性拟合"]="{\"only\":\"\",\"show\":\"\",\"more\":\"\"}$"+r;
+
+		sessionStorage.ntvname="dawu$线性拟合";
+		window.open("../notes/view.html","_blank","popup");
+	}
+</script>
+</html>

@@ -1,0 +1,137 @@
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<script src="/js/an.js"></script>
+	<script src="../js/md5.js"></script>
+	<script src="../js/AES.js"></script>
+	<meta content="initial-scale=1,width=device-width" name="viewport">
+	<title>文件传输</title>
+</head>
+<body onload="L()">
+<div id="go">
+	<h1>文件传输</h1>
+	<button onclick="H('go');S('ky');">传输码</button>
+	<br><br>
+	<button disabled onclick="H('go');S('en');">加密</button>
+	<br><br>
+	<button disabled onclick="H('go');S('de');">解密</button>
+</div>
+<div id="ky" style="display:none">
+	<h1>设置传输码</h1>
+	<input id="co" oninput="G()" placeholder="请输入传输码" type="text"><br><br>
+	<button onclick="H('ky');S('go');">返回</button>
+</div>
+<div id="en" style="display:none">
+	<h1>文件加密</h1>
+	<input type="file"><br>
+	<p>一次性传输码：<input id="once0" readonly style="width:80px"></p>
+	<button onclick="enc()">确定</button>
+	<br><br>
+	<button onclick="H('en');S('go');">返回</button>
+</div>
+<div id="de" style="display:none">
+	<h1>文件解密</h1>
+	<input accept=".cooh" type="file"><br>
+	<p>一次性传输码：<input id="once1" style="width:80px"></p>
+	<button onclick="dec()">确定</button>
+	<br><br>
+	<button onclick="H('de');S('go');">返回</button>
+</div>
+<a id="ok" style="display:none"></a>
+<p><a href="../index.html">返回</a></p>
+</body>
+<style>
+	button, input
+	{
+		zoom:110%;
+		width:180px;
+		height:30px;
+	}
+</style>
+<script>
+	let P=8,K="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	function H(c)
+	{document.getElementById(c).style.display="none";}
+
+	function S(c)
+	{document.getElementById(c).style.display="block";}
+
+	function L()
+	{
+		let key=localStorage["filekey"];
+		if(key!==undefined)
+		{
+			document.getElementById("co").value=key;
+			document.getElementById("go").children[4].disabled=false;
+			document.getElementById("go").children[7].disabled=false;
+		}
+		gen();
+	}
+
+	function G()
+	{
+		localStorage["filekey"]=document.getElementById("co").value;
+		document.getElementById("go").children[4].disabled=false;
+		document.getElementById("go").children[7].disabled=false;
+	}
+
+	function gen()
+	{
+		let re="";
+		for(let i=1; i<=P; i++)
+		{re+=K[Math.floor(Math.random()*K.length)];}
+		document.getElementById("once0").value=re;
+	}
+
+	function enc()
+	{
+		let key=localStorage["filekey"]+document.getElementById("once0").value;
+		let on=document.getElementById("en").children[1].files;
+		if(!on.length)
+		{return;}
+		let am=new FileReader();
+		am.readAsDataURL(on[0]);
+		am.onload=function()
+		{
+			let is=this.result;
+			is=on[0].type+"$"+on[0].name+"$"+is.substr(is.indexOf(",")+1);
+			is=md5(is)+CryptoJS.AES.encrypt(is,key).toString();
+			document.getElementById("ok").setAttribute("href","data:text/plain;charset=utf-8,"+is);
+			document.getElementById("ok").setAttribute("download","1.cooh");
+			document.getElementById("ok").click();
+		};
+	}
+
+	function dec()
+	{
+		let key=localStorage["filekey"]+document.getElementById("once1").value;
+		let on=document.getElementById("de").children[1].files;
+		if(!on.length)
+		{return;}
+		let am=new FileReader();
+		am.readAsText(on[0]);
+		am.onload=function()
+		{
+			let is=this.result;
+			let re=is.substr(32);
+			try
+			{re=CryptoJS.AES.decrypt(re,key).toString(CryptoJS.enc.Utf8);}
+			catch(err)
+			{re="";}
+			if(md5(re)!==is.substr(0,32))
+			{
+				alert("传输码错误");
+				return;
+			}
+			am=re.substr(0,re.indexOf("$"));
+			re=re.substr(re.indexOf("$")+1);
+			is=re.substr(re.indexOf("$")+1);
+			re=re.substr(0,re.indexOf("$"));
+			document.getElementById("ok").setAttribute("href","data:"+am+";base64,"+is);
+			document.getElementById("ok").setAttribute("download",re);
+			document.getElementById("ok").click();
+		};
+	}
+</script>
+</html>

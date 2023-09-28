@@ -1,0 +1,82 @@
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<script src="/js/an.js"></script>
+	<script src="../../js/show.js"></script>
+	<title>Diary-查看</title>
+</head>
+<body onload=L()>
+<h1 id="name" style="text-align:center"></h1>
+<h3 id="most" style="position:absolute;top:4%;right:20%"></h3>
+<div id="main" style="position:absolute;top:10%;margin:3%;font-size:17px"></div>
+<div id="next" style="position:fixed;bottom:2%;right:2%;width:8%;height:10%;z-index:1024;font-size:17px">
+	<p style="text-align:center"></p>
+	<button disabled onclick="go(1)" style="width:100%;height:35%">下一篇</button>
+	<button disabled onclick="go(0)" style="width:100%;height:35%">上一篇</button>
+</div>
+<script>
+	let all=[],c=0;
+
+	function L()
+	{
+		let name=sessionStorage.divname;
+		let main=localStorage.getItem("diary_"+name),j=0,u="";
+		let data=new Array(4);
+		for(let i=0; i<4; i++)
+		{
+			for(; j<main.length; j++)
+			{
+				if(main[j]==="$")
+				{
+					data[i]=u;
+					j++;
+					u="";
+					break;
+				}
+				else
+				{u+=main[j];}
+			}
+		}
+		document.getElementById("name").innerText=data[2];
+		document.getElementById("most").innerText=data[3];
+		document.getElementById("next").children[0].innerText=name;
+		document.getElementById("main").innerHTML=O(main.substring(j),false)[0];
+		u=localStorage.diarydata;
+		let n="",A=0;
+		for(let i=0; i<u.length; i++)
+		{
+			if(u[i]==="$")
+			{
+				A++;
+				all[A]=n;
+				if(n===name)
+				{c=A;}
+				n="";
+			}
+			else
+			{n+=u[i];}
+		}
+		if(c!==1)
+		{document.getElementById("next").children[2].disabled=false;}
+		if(c!==A)
+		{document.getElementById("next").children[1].disabled=false;}
+	}
+
+	function go(k)
+	{
+		document.getElementById("next").children[1].disabled=true;
+		document.getElementById("next").children[2].disabled=true;
+		if(k)
+		{
+			sessionStorage.divname=all[c+1];
+			location.reload();
+		}
+		else
+		{
+			sessionStorage.divname=all[c-1];
+			location.reload();
+		}
+	}
+</script>
+</body>
+</html>

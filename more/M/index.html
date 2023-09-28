@@ -1,0 +1,27 @@
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<script src="/js/an.js"></script>
+	<title>the M中心</title>
+</head>
+<body onload=L() style="background-image:url(M.png);background-repeat:no-repeat;background-size:contain">
+<h1>M中心</h1>
+<h2 id="in" style="background-color:rgb(131,156,200)"></h2>
+</body>
+<script>
+	function L()
+	{
+		let now=new Date();
+		let the=new Date(2018,10,10);
+		let all=Math.floor((now.getTime()-the.getTime())/86400000);
+		let it="今天是M中心"+String(Math.floor(all/343+1))+"纪";
+		all%=343;
+		it+=String(Math.floor(all/49+1))+"年";
+		all%=49;
+		it+=String(Math.floor(all/7+1))+"月";
+		all%=7;
+		it+=String(all+1)+"日";
+		document.getElementById("in").innerText=it;
+	}
+</script>
+</html>

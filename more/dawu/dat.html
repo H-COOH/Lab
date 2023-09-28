@@ -1,0 +1,308 @@
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<script src="/js/an.js"></script>
+	<script src="cal.js"></script>
+	<script src="../../js/AES.js"></script>
+	<meta content="initial-scale=1,width=device-width" name="viewport">
+	<title>实验数据管理器</title>
+</head>
+<body onload="L()">
+<h1>实验数据管理器</h1>
+<div style="margin-left:1%">
+	<div id="name">
+		<ol id="main" style="font-size:17px;line-height:1.5"></ol>
+		<p>新建：<input id="news" style="width:180px;height:30px">
+			<button onclick="nth()">清空</button>
+		</p>
+		<p>
+			<button onclick="run()" style="width:80px;">执行</button>&emsp;<button onclick="del()" style="width:80px">
+			删除
+		</button>&emsp;<button onclick="get()" style="width:80px">导出</button>
+		</p>
+		<div id="out" style="display:none">
+			<hr>
+			<textarea readonly style="width:280px;height:210px"></textarea>
+			<p>
+				<button onclick="copy()" style="width:130px">复制</button>&emsp;<button onclick="done()"
+				style="width:130px">关闭
+			</button>
+			</p>
+		</div>
+		<details id="more">
+			<summary>更多</summary>
+			<p>
+				<button onclick="thr()" style="color:blue;width:150px">转移所有数据</button>
+			</p>
+			<p>
+				<button onclick="clr()" style="color:red;width:150px">删除所有数据</button>
+			</p>
+		</details>
+	</div>
+	<div id="hide" style="display:none">
+		<textarea id="data" style="width:280px;height:200px"></textarea>
+		<p>
+			<button onclick="dai()" style="width:130px">导入数据</button>&emsp;<button onclick="dao()"
+			style="width:130px">导出数据
+		</button>
+		</p>
+		<p>
+			<button onclick="dr()" style="width:280px">返回</button>
+		</p>
+	</div>
+	<p><a href="index.html">返回</a></p>
+</div>
+</body>
+<style>
+	button
+	{
+		width:45px;
+		height:30px;
+	}
+
+	input[type="checkbox"]
+	{
+		zoom:130%;
+	}
+
+	input[type="text"]
+	{
+		width:200px;
+		height:30px;
+	}
+</style>
+<script>
+	"use strict";
+	let data=[],at;
+
+	function L()
+	{
+		let dat=localStorage["dawu_dat"];
+		if(dat===undefined)
+		{
+			localStorage["dawu_dat"]="";
+			dat="";
+		}
+		let a="",u="";
+		for(let i=0; i<dat.length; i++)
+		{
+			if(dat[i]==="#")
+			{
+				a+="<li><input type='checkbox'><input oninput='sav()' type='text' value='"+u+"'></li>";
+				u="";
+			}
+			else
+			{u+=dat[i];}
+		}
+		document.getElementById("main").innerHTML=a;
+	}
+
+	function nxt(c)
+	{return c===" "||c==="\n";}
+
+	function sav()
+	{
+		let h=document.getElementById("main").children,a="";
+		for(let i=0; i<h.length; i++)
+		{a+=h[i].children[1].value+"#";}
+		localStorage["dawu_dat"]=a;
+	}
+
+	function nth()
+	{document.getElementById("news").value="";}
+
+	function add(v)
+	{
+		localStorage["dawu_dat"]+=v+"#";
+		let h=document.createElement("li");
+		h.innerHTML="<input type='checkbox'><input oninput='sav()' type='text' value='"+v+"'>";
+		document.getElementById("main").appendChild(h);
+	}
+
+	function R(k)
+	{return data[k][at]===undefined?0:data[k][at];}
+
+	function toa(d)
+	{
+		let v=[],f=false;
+		for(let i=0; i<d.length; i++)
+		{
+			let u="";
+			while(nxt(d[i]))
+			{
+				i++;
+				if(i===d.length)
+				{
+					f=true;
+					break;
+				}
+			}
+			if(f)
+			{break;}
+			while(!nxt(d[i]))
+			{
+				u=u+d[i];
+				i++;
+			}
+			if(f)
+			{v.push(u);}
+			else
+			{v.push(parseFloat(u));}
+		}
+		return v;
+	}
+
+	function exc()
+	{
+		data=[];
+		let all=document.getElementById("main").children;
+		for(let i=0; i<all.length; i++)
+		{data[i+1]=toa(all[i].children[1].value+" ",false);}
+		let wil=[];
+		let rul=document.getElementById("news").value;
+		for(let i=0; i<rul.length; i++)
+		{
+			if(rul[i]==="R")
+			{
+				let j=i+2,r="";
+				while(j<rul.length&&rul[j]!==")")
+				{
+					r+=rul[j];
+					j++;
+				}
+				wil.push(parseInt(r));
+				i=j;
+			}
+		}
+		let N=0,L=0,re="";
+		for(let i=0; i<wil.length; i++)
+		{
+			L=Math.max(L,data[wil[i]].length);
+			for(let j=0; j<data[wil[i]].length; j++)
+			{
+				let tmp=String(data[wil[i]][j]).split(".")[1];
+				N=Math.max(N,tmp===undefined?0:tmp.length);
+			}
+		}
+		for(let i=0; i<L; i++)
+		{
+			at=i;
+			re+=W(rul).toFixed(N+1)+" ";
+		}
+		return re.slice(0,-1);
+	}
+
+	function run()
+	{
+		let h;
+		try
+		{h=exc();}
+		catch(e)
+		{h="NaN";}
+		if(h.indexOf("NaN")!== -1)
+		{
+			alert("存在错误！");
+			return;
+		}
+		add(h);
+	}
+
+	function del()
+	{
+		let r=confirm("确定删除？\n此操作无法恢复");
+		if(!r)
+		{return;}
+		let h=document.getElementById("main").children;
+		for(let i=h.length-1; i>=0; i--)
+		{
+			if(h[i].children[0].checked)
+			{h[i].parentNode.removeChild(h[i]);}
+		}
+		sav();
+	}
+
+	function get()
+	{
+		let m=[],n=0,a="\\hline\n实验序号&";
+		let h=document.getElementById("main").children;
+		for(let i=0; i<h.length; i++)
+		{
+			if(!h[i].children[0].checked)
+			{continue;}
+			let t=toa(h[i].children[1].value+" ",true);
+			m.push(t);
+			n=Math.max(n,t.length);
+		}
+		for(let i=0; i<n; i++)
+		{a+=String(i+1)+"&";}
+		a=a.slice(0,-1)+"\\\\\n\\hline";
+		for(let i=0; i<m.length; i++)
+		{
+			a+="\n项目名称&";
+			for(let j=0; j<n; j++)
+			{a+=m[i][j]===undefined?"&":String(m[i][j])+"&";}
+			a=a.slice(0,-1)+"\\\\\n\\hline";
+		}
+		document.getElementById("out").children[1].value=a;
+		document.getElementById("out").style.display="block";
+	}
+
+	function copy()
+	{
+		document.getElementById("out").children[1].select();
+		document.execCommand("Copy");
+	}
+
+	function done()
+	{
+		document.getElementById("out").children[1].value="";
+		document.getElementById("out").style.display="none";
+	}
+
+	function thr()
+	{
+		document.getElementById("name").style.display="none";
+		document.getElementById("hide").style.display="block";
+	}
+
+	function dai()
+	{
+		let d=document.getElementById("data").value;
+		d=CryptoJS.AES.decrypt(d,"physics").toString(CryptoJS.enc.Utf8);
+		localStorage["dawu_dat"]=d;
+		alert("已完成");
+		dr();
+		L();
+	}
+
+	function dao()
+	{
+		let d=localStorage["dawu_dat"];
+		d=CryptoJS.AES.encrypt(d,"physics").toString();
+		document.getElementById("data").value=d;
+		document.getElementById("data").select();
+		document.execCommand("Copy");
+	}
+
+	function dr()
+	{
+		document.getElementById("data").value="";
+		document.getElementById("hide").style.display="none";
+		document.getElementById("name").style.display="block";
+		document.getElementById("more").open=false;
+	}
+
+	function clr()
+	{
+		let r=confirm("请确认此操作\n确定删除？\n此操作无法恢复");
+		if(!r)
+		{return;}
+		localStorage.removeItem("dawu_for");
+		localStorage.removeItem("dawu_who");
+		localStorage.removeItem("dawu_dat");
+		localStorage.removeItem("dawu$不确定度");
+		L();
+		document.getElementById("more").open=false;
+	}
+</script>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE HTML>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<meta charset="UTF-8">
+	<script src="/js/an.js"></script>
+	<script src="../../js/info.js"></script>
+	<script src="../../js/md5.js"></script>
+	<script src="../../js/AES.js"></script>
+	<script src="../../js/show.js"></script>
+	<link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css" rel="stylesheet">
+	<script crossorigin="anonymous" defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.js"></script>
+	<title>Notes-查看</title>
+</head>
+<body onload=L()>
+<h1 id="name"></h1>
+<div id="tent">
+	<div id="main" style="margin:2%;font-size:17px;line-height:1.5"></div>
+	<p style="position:fixed;bottom:2%;right:3%;z-index:2;font-size:17px">
+		<a href="#" onclick="F(1)">源码</a>
+	</p>
+</div>
+<div id="code" style="display:none">
+	<textarea readonly style="width:85vw;height:85vh;position:fixed;left:5vw;top:10vh;font-size:17px"></textarea>
+	<p style="position:fixed;bottom:2%;right:3%;z-index:2;font-size:17px">
+		<a href="#" onclick="F(0)">内容</a>
+	</p>
+</div>
+<p style="position:fixed;bottom:5%;right:3%;z-index:2;font-size:17px">
+	<a href="#" id="vc" onclick="vif(1)">属性</a>
+</p>
+<div id="save" style="text-align:center">
+	<div id="auth" style="display:none">
+		<h3>请提供密码</h3>
+		<input onkeydown="nxt()" style="width:120px;height:30px" type="password">
+	</div>
+	<iframe id="info" src="about:blank"></iframe>
+	<div id="none"></div>
+	<p id="hide" style="position:fixed;bottom:5%;right:3%;z-index:4;font-size:17px;display:none">
+		<a href="#" onclick="vif(0)">关闭</a>
+	</p>
+</div>
+</body>
+<style id="like"></style>
+<style>
+	#save
+	{
+		top:0;
+		left:0;
+		width:100%;
+		height:100%;
+		z-index:3;
+		opacity:0.9;
+		position:absolute;
+		background-color:#09A7A1;
+	}
+
+	#auth
+	{
+		top:42%;
+		left:42%;
+		width:16%;
+		height:16%;
+		position:absolute;
+		background-color:mistyrose;
+	}
+
+	#info
+	{
+		top:8%;
+		left:38%;
+		width:24%;
+		height:84%;
+		display:none;
+		position:absolute;
+		background-color:mistyrose;
+	}
+
+	#none
+	{
+		top:8%;
+		left:38%;
+		width:24%;
+		height:84%;
+		display:none;
+		z-index:4;
+		opacity:0.3;
+		position:absolute;
+		background-color:floralwhite;
+	}
+</style>
+<script>
+	function W(id)
+	{return document.getElementById(id);}
+
+	function L()
+	{
+		load(false);
+		W("name").innerText=name.substr(name.indexOf("$")+1);
+		if(json["only"]==="")
+		{
+			ini();
+			return;
+		}
+		let k=gkey(name);
+		if(k!=="")
+		{
+			data=CryptoJS.AES.decrypt(data,k).toString(CryptoJS.enc.Utf8);
+			document.cookie=name+"=@"+k+"@";
+			ini();
+			return;
+		}
+		W("auth").style.display="block";
+		W("auth").children[1].focus();
+	}
+
+	function nxt()
+	{
+		if(event.keyCode!==13)
+		{return;}
+		let s=data,k=W("auth").children[1].value;
+		try
+		{s=CryptoJS.AES.decrypt(s,k).toString(CryptoJS.enc.Utf8);}
+		catch(err)
+		{s="";}
+		if(md5(s)!==json["only"])
+		{
+			alert("密码错误，请重试");
+			return;
+		}
+		data=s;
+		document.cookie=name+"=@"+k+"@";
+		W("auth").style.display="none";
+		ini();
+	}
+
+	function ini()
+	{
+		document.getElementById("main").innerHTML=O(data,true)[0];
+		document.getElementById("code").children[0].value=data;
+		W("like").innerText="#main{"+json["show"].replaceAll(";"," !important;")+"}";
+		W("save").style.display="none";
+		W("info").style.display="block";
+		W("none").style.display="block";
+		W("hide").style.display="block";
+	}
+
+	function vif(r)
+	{
+		if(r)
+		{
+			W("info").src="./info.html?mode=view";
+			document.body.style.overflow="hidden";
+			W("vc").style.display="none";
+			W("save").style.display="block";
+		}
+		else
+		{
+			W("save").style.display="none";
+			document.body.style.overflow="visible";
+			W("info").src="about:blank";
+			W("vc").style.display="block";
+			load(false);
+			ajs();
+		}
+	}
+
+	function F(r)
+	{
+		if(r)
+		{
+			document.getElementById("tent").style.display="none";
+			document.getElementById("code").style.display="block";
+		}
+		else
+		{
+			document.getElementById("code").style.display="none";
+			document.getElementById("tent").style.display="block";
+		}
+	}
+</script>
+</html>
